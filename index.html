@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Random Number</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #number-container {
+      font-size: 5rem;
+      color: #333;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeZoomIn 1.5s forwards;
+    }
+
+    @keyframes fadeZoomIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 600px) {
+      #number-container {
+        font-size: 3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="number-container"></div>
+
+  <script>
+    function getISTDate() {
+      const now = new Date();
+      // IST is UTC+5:30
+      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+      return new Date(utc + (3600000 * 5.5));
+    }
+
+    function getTodayKey() {
+      const ist = getISTDate();
+      return ist.toISOString().split("T")[0]; // YYYY-MM-DD
+    }
+
+    function generateRandomNumber() {
+      return Math.floor(Math.random() * 1000000); // you can change the range
+    }
+
+    function showNumber(number) {
+      const container = document.getElementById('number-container');
+      container.textContent = number;
+      container.style.animation = 'none';
+      container.offsetHeight; // trigger reflow
+      container.style.animation = null;
+    }
+
+    function updateNumber() {
+      const todayKey = getTodayKey();
+      const savedData = JSON.parse(localStorage.getItem("dailyNumber") || "{}");
+
+      if (savedData.date !== todayKey) {
+        const newNumber = generateRandomNumber();
+        localStorage.setItem("dailyNumber", JSON.stringify({ date: todayKey, number: newNumber }));
+        showNumber(newNumber);
+      } else {
+        showNumber(savedData.number);
+      }
+    }
+
+    updateNumber();
+
+    // Auto-refresh the number every 1 minute to catch day change without reload
+    setInterval(updateNumber, 60000);
+  </script>
+</body>
+</html>
